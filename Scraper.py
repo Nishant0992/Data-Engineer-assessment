@@ -9,6 +9,21 @@ from bs4 import BeautifulSoup
 import requests
 import datetime
 import pandas as pd
+import sqlite3
+
+# Connecting to sqlite db to create a table to store the extracted data
+
+database = 'C:\\sqlite\\test.db'
+
+conn=sqlite3.connect(database)
+
+c=conn.cursor()
+
+c.execute('CREATE TABLE IF NOT EXISTS bbc_schedule (date TEXT, time TEXT, title TEXT, synopsys TEXT)')
+
+conn.commit()
+
+
 
 #Key in the start and the end date for which you want to get the schedule
 start_date=datetime.date(2021, 8, 25)
@@ -58,6 +73,7 @@ for i in range(day_count+1):
         #Create a pandas dataframe and zip all the extracted values to it in the required format.
 
         df=pd.DataFrame(zip(date_list,time_list,title_list,synopsys_list))
+        df.columns=['Date','Time','Title','Synopsys']
     date += datetime.timedelta(days=1)
     
     #Append the dataframe to another dataframe to get the values for all the dates and not just the last date
@@ -67,6 +83,9 @@ for i in range(day_count+1):
 print(df2)
 #Finally, convert the dataframe to a csv file to get the required data
 df2.to_csv('Schedule.csv')
+#Dumping the contents fo the dataframe to a table in sqlite
+df.to_sql('bbc_schedule', conn, if_exists='replace', index = False)
+conn.close()
 
 
 
